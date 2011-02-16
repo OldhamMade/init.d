@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# Init file for istatd
+#
+# Written by Phillip B Oldham <phillip.oldham@gmail.com>
+#
+# chkconfig: - 80 12
+# description: iStat iPhone/iPod Touch remote monitoring daemon
+#
+# processname: istatd
+# config: /etc/istat.conf
+
+source /etc/rc.d/init.d/functions
+
+RETVAL=0
+prog="istatd"
+desc="iStat monitoring daemon"
+
+start() {
+    echo -n $"Starting $desc ($prog): "
+    daemon $prog -d
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Shutting down $desc ($prog): "
+    killproc $prog
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
+    return $RETVAL
+}
+
+restart() {
+    stop
+    sleep 1
+    start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    condrestart)
+        [ -e /var/lock/subsys/$prog ] && restart
+        RETVAL=$?
+        ;;
+    status)
+        status $prog
+        RETVAL=$?
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+esac
+
+exit $RETVAL
+

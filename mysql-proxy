@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# chkconfig: - 55 45
+# description: The Mysql Proxy program
+#
+# processname: mysql-proxy
+# config: /etc/sysconfig/mysql-proxy
+# pidfile: /var/run/mysql-proxy.pid
+
+# Source function library.
+. /etc/init.d/functions
+
+USER=root
+CONFIGFILE=/etc/mysql-proxy/mysql-proxy.conf
+LOGFILE=/var/log/mysql-proxy.log
+PID=/var/run/mysql-proxy.pid
+THREADS=1
+
+if [ -f /etc/sysconfig/memcached ];then
+        . /etc/sysconfig/memcached
+fi
+
+# Check that networking is up.
+. /etc/sysconfig/network
+
+if [ "$NETWORKING" = "no" ]
+then
+        exit 0
+fi
+
+RETVAL=0
+prog="/usr/local/mysql-proxy/bin/mysql-proxy"
+
+start () {
+        echo -n $"Starting $prog: "
+        daemon --pidfile $PID $prog --pid-file=$PID --defaults-file=$CONFIGFILE
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/mysql-proxy
+}
+stop () {
+        echo -n $"Stopping $prog: "
+        killproc -p $PID $prog
+        RETVAL=$?
+        echo
+        if [ $RETVAL -eq 0 ] ; then
+            rm -f /var/lock/subsys/mysql-proxy
+            rm -f $PID
+        fi
+}
+
+restart () {
+        stop
+	sleep 1
+        start
+}
+
+
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status $prog
+        ;;
+  restart|reload|force-reload)
+        restart
+        ;;
+  condrestart)
+        [ -f /var/lock/subsys/mysql-proxy ] && restart || :
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
+        exit 1
+esac
+
+exit $?
+

@@ -1,0 +1,116 @@
+#!/bin/sh
+#
+# nginx     Startup script for the nginx server
+#
+# chkconfig: - 85 15
+# description: fast webserver with light-weight system requirements
+#
+# processname: nginx
+# config: /etc/nginx/nginx.conf
+# config: /etc/sysconfig/nginx
+# pidfile: /var/run/nginx.pid
+#
+# Note: pidfile is assumed to be created
+# by nginx (config: server.pid-file).
+# If not, uncomment 'pidof' line.
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+if [ -f /etc/sysconfig/nginx ]; then
+        . /etc/sysconfig/nginx
+fi
+
+if [ -z "$NGINX_CONF_PATH" ]; then
+        NGINX_CONF_PATH="/etc/nginx/nginx.conf"
+fi
+
+prog="nginx"
+nginx="/usr/sbin/nginx"
+RETVAL=0
+
+start() {
+        echo -n $"Starting $prog: "
+        daemon $nginx
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
+        return $RETVAL
+}
+
+stop() {
+        echo -n $"Stopping $prog: "
+        killproc $nginx
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
+        return $RETVAL
+}
+
+reload() {
+        echo -n $"Reloading $prog: "
+        killproc $nginx -HUP
+        RETVAL=$?
+        echo
+        return $RETVAL
+}
+
+upgrade() {
+        echo "Upgrading $prog:"
+        echo -n $"Starting new instance... "
+        kill -USR2 `cat /var/run/nginx.pid`
+        RETVAL=$?
+        echo
+        sleep 1
+        echo -n $"Stopping old workers... "
+        kill -WINCH `cat /var/run/nginx.pid.oldbin`
+        RETVAL=$?
+        echo
+        sleep 1
+        echo -n $"Killing old master process... "
+        kill -QUIT `cat /var/run/nginx.pid.oldbin`
+        RETVAL=$?
+        echo "done."
+        echo
+        return $RETVAL
+}
+
+
+case "$1" in
+        start)
+                start
+                ;;
+        stop)
+                stop
+                ;;
+        restart)
+                stop
+                start
+                ;;
+        condrestart)
+                if [ -f /var/lock/subsys/$prog ]; then
+                        stop
+                        start
+                fi
+                ;;
+        reload)
+                reload
+                ;;
+        upgrade)
+                upgrade
+                ;;
+        status)
+                status $nginx
+                RETVAL=$?
+                ;;
+        test)
+                $nginx -t
+                RETVAL=$?
+                ;;
+        *)
+                echo $"Usage: $0 {start|stop|restart|condrestart|reload|upgrade|status|test}"
+                RETVAL=1
+esac
+
+exit $RETVAL
+
