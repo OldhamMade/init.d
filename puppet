@@ -1,0 +1,69 @@
+#!/bin/sh
+# RedHat startup script for a puppet instance
+#
+# chkconfig: 2345 80 20
+# description: a client for the puppet system
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+puppet="/usr/bin/ruby /usr/bin/puppetd"
+name="puppetd"
+
+[ -f $puppetd ] || exit 1
+
+RETVAL=0
+
+start() {
+        echo -n "Starting $name: "
+        daemon $puppet
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$name
+        echo
+        return $RETVAL
+}
+
+stop() {
+        echo -n $"Stopping $name: "
+        killproc $puppet
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$name
+        return $RETVAL
+}
+
+reload() {
+        echo -n $"Reloading $name: "
+        killproc $puppet -HUP
+        RETVAL=$?
+        echo
+        return $RETVAL
+}
+
+
+case "$1" in
+        start)
+                start
+                ;;
+
+        stop)
+                stop
+                ;;
+
+        restart)
+                stop
+                start
+                ;;
+
+        reload)
+                reload
+                ;;
+
+        *)
+                echo $"Usage: $0 {start|stop|restart|reload}"
+                RETVAL=1
+
+esac
+
+exit $REVAL
+
