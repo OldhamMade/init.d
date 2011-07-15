@@ -7,7 +7,7 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-bindir="/usr/local/bin"
+bindir="/usr/bin"
 supervisorctl="$bindir/supervisorctl"
 supervisord="$bindir/supervisord"
 name="supervisord"
