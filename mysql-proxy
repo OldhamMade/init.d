@@ -33,7 +33,7 @@ prog="/usr/local/mysql-proxy/bin/mysql-proxy"
 
 start () {
         echo -n $"Starting $prog: "
-        daemon --pidfile $PID $prog --pid-file=$PID --defaults-file=$CONFIGFILE
+        daemon --pidfile $PID $prog --pid-file=$PID --daemon --defaults-file=$CONFIGFILE
         RETVAL=$?
         echo
         [ $RETVAL -eq 0 ] && touch /var/lock/subsys/mysql-proxy
