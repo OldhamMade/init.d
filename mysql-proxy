@@ -16,8 +16,8 @@ LOGFILE=/var/log/mysql-proxy.log
 PID=/var/run/mysql-proxy.pid
 THREADS=1
 
-if [ -f /etc/sysconfig/memcached ];then
-        . /etc/sysconfig/memcached
+if [ -f /etc/sysconfig/mysql-proxy ];then
+        . /etc/sysconfig/mysql-proxy
 fi
 
 # Check that networking is up.
